@@ -1,0 +1,80 @@
+---
+title: "Epidemic Curves for Selected Counties"
+output: html_document
+---
+
+``` {r setup, include = FALSE, warning=FALSE} 
+#suppressMessages(library(Hmisc))
+suppressMessages(library(tidyverse))
+#suppressMessages(library(sf))
+library(lubridate)
+library(tidytext) 
+library(viridis)
+library(gridExtra)
+library(kableExtra)
+library(grid)
+
+```
+
+###### Data through: `r gsub(" 0", " ", format(data.date, "%B %d, %Y"))`
+###### Report generated: `r gsub(" 0", " ", format(Sys.Date(), "%B %d, %Y"))`
+  
+  
+###### *Note:* The scale used for the y-axis may differ by jurisdiction to improve visualization of the data. The x-axis represents the report date, which lags behind onset date by 8&ndash;10 days nationally.
+
+
+```{r epi.curves, include=TRUE, warning=FALSE, echo=FALSE, fig.height = 4, fig.width=10}
+
+
+report.date.footnote <- "Note: Curve based on date of case report, which lags behind onset date by 8\u201310 days nationally."
+#counties <- unique(county_dat$name)
+counties <- unique(county_dat$`County Name`[match(county.fips, 
+                                                as.numeric(as.character(county_dat$countyFIPS)))])
+
+state <- unique(county_dat$State[match(county.fips, 
+                                                as.numeric(as.character(county_dat$countyFIPS)))])
+
+pop<-county_dat$CENSUS2010POP[match(county.fips, 
+                                                as.numeric(as.character(county_dat$countyFIPS)))]
+
+#county.fips <- sapply(counties, function(x) county_dat$id[which(county_dat$name == x)][1])
+
+# Loop through the counties
+  
+  for (i in 1:length(county.fips)) {
+
+    county_dat <- county_dat %>%
+      mutate(dates = as.Date(date))
+    
+
+      epi.curve.fig <- county_dat %>% 
+      filter(countyFIPS == county.fips[i]) %>%
+      ggplot() +
+      geom_col(aes(x=dates, y=(daily_cases/pop[i]) *100000), color = "#cccccc", fill = "#dddddd") +
+      geom_line(aes(x=dates, y=(day7ave/pop[i]) *100000), size=.7, alpha=.8) +
+      expand_limits(x = min(county_dat$dates), y = 0) +
+      scale_x_date("Report Date", date_labels = "%b %d", date_breaks = "28 day") +
+      scale_y_continuous("Daily reported COVID-19 Cases / 100,000 Persons") +
+      geom_hline(yintercept = 0, size=4.5, color="white") + # This gives a border to the line
+      ggtitle(paste(counties[i], ", ", state[i], " / Pop:", formatC(pop[i], big.mark = ",", format = "d") )) +
+      theme_classic() +
+      theme(axis.title.x = element_blank(),
+        legend.position= "right",
+        legend.title = element_blank(),
+        legend.key = element_rect(colour = "black"),
+        axis.text.x = element_text(angle = 0, size = 9),
+        plot.caption = element_text(hjust = 0)) +
+      labs(caption = report.date.footnote)
+    
+    
+    grid.arrange(epi.curve.fig, nrow = 1)
+}
+```
+
+
+#### Figure Overview
+The vertical bars on the above figure/s represent daily reported COVID-19 cases per 100,000 persons in a county, and the smoothed line/s are seven day rolling average number of cases.
+
+
+**Note: All dates are based on the date of report, not date of onset.**
+

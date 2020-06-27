@@ -1,0 +1,13 @@
+name: epicurvegenerator-USAFacts
+title: epicurvegenerator-USAFacts
+username:
+account: nicholas-skaff
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2505928
+bundleId: 3318048
+url: https://nicholas-skaff.shinyapps.io/epicurvegenerator-USAFacts/
+when: 1593142751.04441
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data/Case_county_slopes.csv|data/size.csv
